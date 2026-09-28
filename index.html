@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E9EEE8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141B19" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Meus Canais">
+<title>Meus Canais</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%232E6A57'/%3E%3Cpath d='M26 20l18 12-18 12z' fill='%23E8B64A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --bg:#E9EEE8; --surface:#F7F9F6; --ink:#1D2B27; --muted:#5C6B66;
+  --accent:#2E6A57; --accent-ink:#FFFFFF; --line:#CDD8D1; --mark:#E8B64A; --mark-ink:#2A1F05;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#141B19; --surface:#1C2522; --ink:#E6EEEA; --muted:#93A39D;
+    --accent:#6FB79C; --accent-ink:#0F1715; --line:#2C3834; }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+#app{max-width:760px;margin:0 auto;padding:0 18px 40px}
+
+.top{display:flex;align-items:center;gap:12px;min-height:60px}
+.top .name{font-weight:600;font-size:15px;color:var(--muted);flex:1}
+.top h1{font-size:20px;font-weight:600;margin:0;flex:1}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;
+  border:1px solid var(--line);background:var(--surface);cursor:pointer;text-decoration:none}
+.iconbtn svg{width:20px;height:20px}
+
+.hero{font-size:clamp(34px,9vw,52px);line-height:1.02;font-weight:800;letter-spacing:-.02em;margin:18px 0 26px;max-width:14ch}
+.muted{color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:999px;
+  border:0;background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:pointer;text-decoration:none}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.wide{width:100%}
+.link{background:none;border:0;padding:8px 0;color:var(--muted);text-decoration:underline;cursor:pointer}
+
+/* Canais na tela inicial */
+.channels{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:22px 14px;margin:0;padding:0;list-style:none}
+.channels a{display:flex;flex-direction:column;align-items:center;gap:10px;text-decoration:none;text-align:center;font-size:15px;line-height:1.25}
+.channels img,.avatar-ph{width:84px;height:84px;border-radius:50%;object-fit:cover;background:var(--line);
+  box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--line)}
+.channels a:active img{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--accent)}
+.resume{display:flex;align-items:center;gap:14px;padding:14px;margin:0 0 30px;border-radius:18px;background:var(--surface);
+  border:1px solid var(--line);text-decoration:none}
+.resume img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:8px}
+.resume strong{display:block}
+.empty{padding:28px 0}
+
+/* Configuração */
+.search{width:100%;min-height:50px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);margin:0 0 14px}
+.sublist{list-style:none;margin:0;padding:0}
+.sub{display:flex;align-items:center;gap:14px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.sub img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--line)}
+.sub span{flex:1}
+.sub input{width:24px;height:24px;accent-color:var(--accent)}
+.foot{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-top:28px}
+
+/* Barra inferior fixa */
+.bar{position:sticky;bottom:0;margin:20px -18px 0;padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--bg);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.bar .count{flex:1;font-size:15px;color:var(--muted)}
+
+/* Vídeos do canal */
+.chead{display:flex;align-items:center;gap:14px;margin:8px 0 22px}
+.chead img{width:56px;height:56px;border-radius:50%}
+.chead h1{font-size:26px;line-height:1.1;margin:0;font-weight:800}
+.videos{display:flex;flex-direction:column;gap:6px}
+.video{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;padding:8px;border-radius:14px;
+  border:2px solid transparent;background:none;cursor:pointer}
+.video.on{border-color:var(--mark);background:var(--surface)}
+.thumb{position:relative;flex:0 0 42%;max-width:190px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.dur{position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.78);color:#fff;font-size:13px;padding:1px 6px;border-radius:5px}
+.num{position:absolute;left:6px;top:6px;width:28px;height:28px;border-radius:50%;background:var(--mark);color:var(--mark-ink);
+  font-weight:800;font-size:15px;display:none;align-items:center;justify-content:center}
+.video.on .num{display:flex}
+.vt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.vtitle{font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.vmeta{font-size:14px;color:var(--muted)}
+.seen .thumb img{opacity:.45}
+.tag{display:inline-block;font-size:13px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);width:max-content}
+.more{margin:16px auto 0;display:flex}
+
+/* Player */
+.frame{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
+.frame iframe,.frame #player{position:absolute;inset:0;width:100%;height:100%}
+.embed-err{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:20px;text-align:center;background:var(--surface);color:var(--ink)}
+.embed-err[hidden]{display:none}
+.now h2{font-size:21px;line-height:1.25;margin:16px 0 4px}
+.controls{display:flex;gap:10px;margin:16px 0 26px}
+.controls .btn{flex:1}
+.queue{list-style:none;margin:0;padding:0;counter-reset:q}
+.queue li button{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:none;border:0;padding:10px 4px;
+  border-bottom:1px solid var(--line);cursor:pointer}
+.queue li button::before{counter-increment:q;content:counter(q);width:24px;flex:0 0 24px;color:var(--muted);font-weight:600;text-align:center}
+.queue .cur button{color:var(--accent);font-weight:600}
+.queue .done button{color:var(--muted);text-decoration:line-through}
+h3{font-size:17px;margin:0 0 6px}
+
+.field{display:flex;flex-direction:column;gap:6px;margin:18px 0}
+.field input{min-height:50px;padding:0 16px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+code{background:var(--surface);border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-size:15px;word-break:break-all}
+.errbox{padding:18px;border-radius:14px;background:var(--surface);border:1px solid var(--line);margin:20px 0}
+
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  max-width:calc(100% - 36px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:15px;
+  opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ---------- Utilidades ---------- */
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let toastTimer;
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3500); }
+function dur(iso){
+  const m = /P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso || '') || [];
+  return (+m[1]||0)*86400 + (+m[2]||0)*3600 + (+m[3]||0)*60 + (+m[4]||0);
+}
+function fmtDur(s){
+  const h = Math.floor(s/3600), m = Math.floor(s%3600/60), sec = s%60, p = n => String(n).padStart(2,'0');
+  return h ? `${h}:${p(m)}:${p(sec)}` : `${m}:${p(sec)}`;
+}
+const fmtDate = d => new Date(d).toLocaleDateString('pt-BR', {day:'numeric', month:'short', year:'numeric'});
+const thumbOf = t => (t && (t.medium || t.high || t.default) || {}).url || '';
+const ICON_GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>';
+const ICON_BACK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+
+function backTop(title, href = '#/'){
+  return `<div class="top"><a class="iconbtn" href="${href}" aria-label="Voltar">${ICON_BACK}</a><h1>${esc(title)}</h1></div>`;
+}
+
+/* ---------- Vídeos já assistidos ---------- */
+function seenSet(){ return new Set(store.get('vistos', [])); }
+function markSeen(id){ const a = store.get('vistos', []).filter(x => x !== id); a.push(id); store.set('vistos', a.slice(-3000)); }
+
+/* ---------- Login com Google ---------- */
+let tokenClient = null, pendingAfterLogin = null;
+const clientId = () => store.get('clientId', '');
+function token(){ const t = store.get('token', null); return t && t.exp > Date.now() + 60000 ? t.value : null; }
+
+function initAuth(){
+  return new Promise((resolve, reject) => {
+    const tryInit = n => {
+      if (window.google && google.accounts && google.accounts.oauth2){
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: clientId(),
+          scope: 'https://www.googleapis.com/auth/youtube.readonly',
+          callback: resp => {
+            if (resp.error){ toast('Não foi possível entrar: ' + resp.error); return; }
+            store.set('token', { value: resp.access_token, exp: Date.now() + resp.expires_in * 1000 });
+            store.set('jaEntrou', true);
+            const next = pendingAfterLogin || route; pendingAfterLogin = null; next();
+          },
+          error_callback: () => toast('O login não abriu. Permita pop-ups para este site e tente de novo.')
+        });
+        resolve();
+      } else if (n > 80) reject(new Error('Login do Google não carregou.'));
+      else setTimeout(() => tryInit(n + 1), 100);
+    };
+    tryInit(0);
+  });
+}
+function login(){
+  if (!tokenClient){ toast('Carregando o login do Google. Tente de novo em instantes.'); initAuth().catch(()=>{}); return; }
+  tokenClient.requestAccessToken({ prompt: store.get('jaEntrou', false) ? '' : 'consent' });
+}
+function logout(){
+  const t = token();
+  if (t && window.google) google.accounts.oauth2.revoke(t, () => {});
+  store.del('token'); store.del('jaEntrou');
+  location.hash = '#/'; route();
+}
+
+/* ---------- API do YouTube ---------- */
+class AuthError extends Error {}
+async function yt(path, params){
+  const t = token(); if (!t) throw new AuthError();
+  const url = new URL('https://www.googleapis.com/youtube/v3/' + path);
+  Object.entries(params).forEach(([k, v]) => { if (v != null) url.searchParams.set(k, v); });
+  const r = await fetch(url, { headers: { Authorization: 'Bearer ' + t } });
+  if (r.status === 401){ store.del('token'); throw new AuthError(); }
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok){
+    const e = new Error((data.error && data.error.message) || ('Erro ' + r.status));
+    e.status = r.status; e.reason = data.error && data.error.errors && data.error.errors[0] && data.error.errors[0].reason;
+    throw e;
+  }
+  return data;
+}
+
+/* ---------- Navegação ---------- */
+window.addEventListener('hashchange', route);
+async function route(){
+  stopPlayer();
+  window.scrollTo(0, 0);
+  if (!clientId()) return renderSetup();
+  if (!token()) return renderLogin();
+  const h = location.hash.replace(/^#\/?/, '').split('/');
+  try{
+    if (h[0] === 'config') await renderConfig();
+    else if (h[0] === 'canal' && h[1]) await renderCanal(h[1]);
+    else if (h[0] === 'assistir') await renderPlayer();
+    else renderHome();
+  }catch(e){ handleErr(e); }
+}
+function handleErr(e){
+  if (e instanceof AuthError){ pendingAfterLogin = route; return renderLogin(); }
+  let msg = e.message;
+  if (e.reason === 'quotaExceeded') msg = 'A cota diária gratuita da API acabou. Ela volta automaticamente amanhã.';
+  else if (e.reason === 'accessNotConfigured' || /has not been used|is disabled/i.test(e.message)) msg = 'A YouTube Data API v3 ainda não está ativada no seu projeto do Google Cloud. Ative e tente de novo em alguns minutos.';
+  else if (e instanceof TypeError) msg = 'Sem conexão com a internet, ou o navegador bloqueou a requisição.';
+  app.innerHTML = backTop('Algo deu errado') + `<div class="errbox"><p>${esc(msg)}</p><button class="btn" id="retry">Tentar de novo</button></div>`;
+  $('#retry').onclick = route;
+}
+
+/* ---------- Tela: configurar Client ID ---------- */
+function renderSetup(){
+  app.innerHTML = `
+    <div class="top"><span class="name">Meus Canais</span></div>
+    <p class="hero">Só os canais que você escolher.</p>
+    <p>Para conectar com o YouTube, cole aqui o <strong>Client ID</strong> que você criou no Google Cloud (o guia explica como).</p>
+    <p class="muted">Endereço deste app, para cadastrar em “Origens JavaScript autorizadas”: <code>${esc(location.origin)}</code></p>
+    <label class="field">Client ID
+      <input id="cid" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="123…apps.googleusercontent.com" value="${esc(clientId())}">
+    </label>
+    <button class="btn wide" id="save">Salvar e continuar</button>`;
+  $('#save').onclick = async () => {
+    const v = $('#cid').value.trim();
+    if (!/\.apps\.googleusercontent\.com$/.test(v)){ toast('O Client ID termina com .apps.googleusercontent.com'); return; }
+    store.set('clientId', v); store.del('token');
+    try{ await initAuth(); }catch(e){}
+    route();
+  };
+}
+
+/* ---------- Tela: entrar ---------- */
+function renderLogin(){
+  app.innerHTML = `
+    <div class="top"><span class="name">Meus Canais</span></div>
+    <p class="hero">Seus canais, sem distrações.</p>
+    <p class="muted">Sem Shorts, sem recomendações, sem feed infinito.</p>
+    <button class="btn wide" id="login" style="margin-top:18px">Entrar com Google</button>
+    <div class="foot"><button class="link" id="chg">Trocar Client ID</button></div>`;
+  $('#login').onclick = login;
+  $('#chg').onclick = () => { store.del('clientId'); route(); };
+}
+
+/* ---------- Tela inicial ---------- */
+function renderHome(){
+  const canais = store.get('canais', []);
+  const fila = store.get('fila', null);
+  const resume = fila && fila.i < fila.items.length ? fila.items[fila.i] : null;
+  app.innerHTML = `
+    <div class="top"><span class="name">Meus Canais</span>
+      <a class="iconbtn" href="#/config" aria-label="Escolher canais">${ICON_GEAR}</a></div>
+    <p class="hero">O que você quer assistir hoje?</p>
+    ${resume ? `<a class="resume" href="#/assistir"><img src="${esc(resume.thumb)}" alt="">
+      <span><strong>Continuar sequência</strong><span class="muted">${fila.items.length - fila.i} vídeo${fila.items.length - fila.i > 1 ? 's' : ''} restante${fila.items.length - fila.i > 1 ? 's' : ''}</span></span></a>` : ''}
+    ${canais.length ? `<ul class="channels">${canais.map(c => `
+      <li><a href="#/canal/${esc(c.id)}">${c.thumb ? `<img src="${esc(c.thumb)}" alt="" loading="lazy">` : '<span class="avatar-ph"></span>'}<span>${esc(c.title)}</span></a></li>`).join('')}</ul>`
+    : `<div class="empty"><p>Você ainda não escolheu nenhum canal.</p><a class="btn" href="#/config">Escolher canais</a></div>`}`;
+}
+
+/* ---------- Configuração: escolher canais ---------- */
+async function renderConfig(){
+  app.innerHTML = backTop('Escolher canais') + '<p class="muted">Carregando suas inscrições…</p>';
+  const subs = []; let page = null, n = 0;
+  do{
+    const d = await yt('subscriptions', { part:'snippet', mine:'true', maxResults:50, order:'alphabetical', pageToken:page });
+    (d.items || []).forEach(it => subs.push({ id: it.snippet.resourceId.channelId, title: it.snippet.title, thumb: thumbOf(it.snippet.thumbnails) }));
+    page = d.nextPageToken; n++;
+  } while (page && n < 40);
+
+  const chosen = new Set(store.get('canais', []).map(c => c.id));
+  app.innerHTML = backTop('Escolher canais') + `
+    <p class="muted">Marque os canais que aparecem na sua tela inicial. Você tem ${subs.length} inscrições.</p>
+    <input class="search" id="q" type="search" placeholder="Buscar canal" aria-label="Buscar canal">
+    <ul class="sublist" id="list"></ul>
+    <div class="bar"><span class="count" id="cnt"></span><button class="btn" id="save">Salvar canais</button></div>
+    <div class="foot"><button class="link" id="out">Sair da conta</button><button class="link" id="chg">Trocar Client ID</button></div>`;
+  const list = $('#list');
+  const updCount = () => $('#cnt').textContent = `${chosen.size} escolhido${chosen.size === 1 ? '' : 's'}`;
+  const draw = () => {
+    const q = $('#q').value.trim().toLowerCase();
+    list.innerHTML = subs.filter(s => !q || s.title.toLowerCase().includes(q)).map(s => `
+      <li><label class="sub"><img src="${esc(s.thumb)}" alt="" loading="lazy"><span>${esc(s.title)}</span>
+      <input type="checkbox" data-id="${esc(s.id)}" ${chosen.has(s.id) ? 'checked' : ''}></label></li>`).join('')
+      || '<li class="muted" style="padding:12px 0">Nenhum canal encontrado.</li>';
+  };
+  list.addEventListener('change', e => {
+    const id = e.target.dataset.id; if (!id) return;
+    e.target.checked ? chosen.add(id) : chosen.delete(id); updCount();
+  });
+  $('#q').oninput = draw;
+  $('#save').onclick = () => {
+    store.set('canais', subs.filter(s => chosen.has(s.id)));
+    toast('Canais salvos'); location.hash = '#/';
+  };
+  $('#out').onclick = logout;
+  $('#chg').onclick = () => { store.del('clientId'); store.del('token'); location.hash = '#/'; route(); };
+  draw(); updCount();
+}
+
+/* ---------- Vídeos de um canal ---------- */
+async function fetchVideos(channelId, pageToken, mode){
+  // UULF = playlist interna só com vídeos longos (sem Shorts). UU = todos os envios.
+  const pl = (mode === 'all' ? 'UU' : 'UULF') + channelId.slice(2);
+  const d = await yt('playlistItems', { part:'contentDetails', playlistId:pl, maxResults:25, pageToken });
+  const ids = (d.items || []).map(i => i.contentDetails.videoId);
+  const info = ids.length ? await yt('videos', { part:'contentDetails,snippet', id: ids.join(',') }) : { items: [] };
+  const map = new Map((info.items || []).map(v => [v.id, v]));
+  let vids = ids.map(id => map.get(id)).filter(Boolean)
+    .filter(v => v.snippet.liveBroadcastContent === 'none')
+    .map(v => ({ id: v.id, title: v.snippet.title, thumb: thumbOf(v.snippet.thumbnails), date: v.snippet.publishedAt, secs: dur(v.contentDetails.duration) }));
+  if (mode === 'all') vids = vids.filter(v => v.secs > 180); // plano B: esconde vídeos de até 3 min
+  return { vids, next: d.nextPageToken };
+}
+
+async function renderCanal(channelId){
+  const ch = store.get('canais', []).find(c => c.id === channelId) || { id: channelId, title: 'Canal', thumb: '' };
+  app.innerHTML = backTop('') + `<div class="chead">${ch.thumb ? `<img src="${esc(ch.thumb)}" alt="">` : ''}<h1>${esc(ch.title)}</h1></div><p class="muted">Carregando vídeos…</p>`;
+
+  let mode = 'long', next = null;
+  const vids = [], sel = [], seen = seenSet();
+
+  async function loadMore(){
+    let tries = 0, got = [];
+    do{
+      let r;
+      try{ r = await fetchVideos(channelId, next, mode); }
+      catch(e){
+        if (e.status === 404 && mode === 'long' && !next){ mode = 'all'; r = await fetchVideos(channelId, null, mode); }
+        else throw e;
+      }
+      got = got.concat(r.vids); next = r.next; tries++;
+    } while (got.length < 8 && next && tries < 4);
+    vids.push(...got);
+  }
+  await loadMore();
+
+  app.innerHTML = backTop('') + `
+    <div class="chead">${ch.thumb ? `<img src="${esc(ch.thumb)}" alt="">` : ''}<h1>${esc(ch.title)}</h1></div>
+    <p class="muted" style="margin-top:-8px">Toque nos vídeos na ordem em que quer assistir.</p>
+    <div class="videos" id="vids"></div>
+    <button class="btn ghost more" id="more">Carregar mais vídeos</button>
+    <div class="bar"><span class="count" id="cnt"></span><button class="btn" id="play" disabled>Assistir em sequência</button></div>`;
+
+  const draw = () => {
+    $('#vids').innerHTML = vids.length ? vids.map(v => {
+      const pos = sel.findIndex(s => s.id === v.id);
+      return `<button class="video ${pos >= 0 ? 'on' : ''} ${seen.has(v.id) ? 'seen' : ''}" data-id="${esc(v.id)}" aria-pressed="${pos >= 0}">
+        <span class="thumb"><img src="${esc(v.thumb)}" alt="" loading="lazy"><span class="dur">${fmtDur(v.secs)}</span><span class="num">${pos + 1}</span></span>
+        <span class="vt"><span class="vtitle">${esc(v.title)}</span><span class="vmeta">${fmtDate(v.date)}</span>${seen.has(v.id) ? '<span class="tag">Já assistido</span>' : ''}</span>
+      </button>`;
+    }).join('') : '<p class="muted">Este canal não tem vídeos longos publicados.</p>';
+    $('#cnt').textContent = sel.length ? `${sel.length} vídeo${sel.length > 1 ? 's' : ''} na sequência` : 'Nenhum vídeo escolhido';
+    $('#play').disabled = !sel.length;
+    $('#more').style.display = next ? '' : 'none';
+  };
+  $('#vids').addEventListener('click', e => {
+    const b = e.target.closest('.video'); if (!b) return;
+    const i = sel.findIndex(s => s.id === b.dataset.id);
+    if (i >= 0) sel.splice(i, 1); else sel.push(vids.find(v => v.id === b.dataset.id));
+    draw();
+  });
+  $('#more').onclick = async () => {
+    const b = $('#more'); b.disabled = true; b.textContent = 'Carregando…';
+    try{ await loadMore(); }catch(e){ if (e instanceof AuthError) return handleErr(e); toast(e.message); }
+    b.disabled = false; b.textContent = 'Carregar mais vídeos'; draw();
+  };
+  $('#play').onclick = () => {
+    store.set('fila', { i: 0, items: sel.map(v => ({ id: v.id, title: v.title, thumb: v.thumb, secs: v.secs, channel: ch.title })) });
+    location.hash = '#/assistir';
+  };
+  draw();
+}
+
+/* ---------- Player em sequência ---------- */
+let ytReady = null, player = null;
+function loadYT(){
+  if (!ytReady) ytReady = new Promise(res => {
+    window.onYouTubeIframeAPIReady = res;
+    const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
+  });
+  return ytReady;
+}
+function stopPlayer(){ if (player){ try{ player.destroy(); }catch(e){} player = null; } }
+
+async function renderPlayer(){
+  const fila = store.get('fila', null);
+  if (!fila || !fila.items.length || fila.i >= fila.items.length) return renderDone();
+
+  app.innerHTML = backTop('Assistindo') + `
+    <div class="frame"><div id="player"></div>
+      <div class="embed-err" id="err" hidden><p id="errmsg"></p>
+        <a class="btn" id="openyt" target="_blank" rel="noopener">Abrir no YouTube</a>
+        <button class="link" id="skip">Pular para o próximo</button></div></div>
+    <div class="now"><h2 id="nowTitle"></h2><p class="muted" id="nowMeta" style="margin:0"></p></div>
+    <div class="controls"><button class="btn ghost" id="prev">Anterior</button><button class="btn" id="next">Próximo</button></div>
+    <h3>Sequência</h3><ol class="queue" id="queue"></ol>`;
+
+  const save = () => store.set('fila', fila);
+  const cur = () => fila.items[fila.i];
+  const drawInfo = () => {
+    const v = cur();
+    $('#nowTitle').textContent = v.title;
+    $('#nowMeta').textContent = `${v.channel}, ${fmtDur(v.secs)}. Vídeo ${fila.i + 1} de ${fila.items.length}.`;
+    $('#prev').disabled = fila.i === 0;
+    $('#next').textContent = fila.i === fila.items.length - 1 ? 'Terminar' : 'Próximo';
+    $('#err').hidden = true;
+    $('#queue').innerHTML = fila.items.map((it, k) =>
+      `<li class="${k === fila.i ? 'cur' : k < fila.i ? 'done' : ''}"><button data-k="${k}">${esc(it.title)}</button></li>`).join('');
+  };
+  const goTo = k => {
+    if (k >= fila.items.length){ fila.i = k; save(); stopPlayer(); return renderDone(); }
+    fila.i = Math.max(0, k); save(); drawInfo();
+    if (player && player.loadVideoById) player.loadVideoById(cur().id);
+  };
+  $('#prev').onclick = () => goTo(fila.i - 1);
+  $('#next').onclick = () => { markSeen(cur().id); goTo(fila.i + 1); };
+  $('#skip').onclick = () => goTo(fila.i + 1);
+  $('#queue').onclick = e => { const b = e.target.closest('button'); if (b) goTo(+b.dataset.k); };
+  drawInfo();
+
+  await loadYT();
+  if (!$('#player')) return; // usuária saiu da tela enquanto carregava
+  player = new YT.Player('player', {
+    videoId: cur().id,
+    playerVars: { autoplay: 1, rel: 0, playsinline: 1, modestbranding: 1 },
+    events: {
+      onStateChange: e => { if (e.data === YT.PlayerState.ENDED){ markSeen(cur().id); goTo(fila.i + 1); } },
+      onError: e => {
+        if (e.data === 100){ toast('Vídeo indisponível. Pulando.'); return goTo(fila.i + 1); }
+        $('#errmsg').textContent = (e.data === 101 || e.data === 150)
+          ? 'Este canal não permite assistir fora do YouTube.' : 'Não foi possível tocar este vídeo aqui.';
+        $('#openyt').href = 'https://www.youtube.com/watch?v=' + encodeURIComponent(cur().id);
+        $('#err').hidden = false;
+      }
+    }
+  });
+}
+
+function renderDone(){
+  store.del('fila');
+  app.innerHTML = `
+    <div class="top"><span class="name">Meus Canais</span></div>
+    <p class="hero">Sequência concluída.</p>
+    <p class="muted">Você assistiu tudo o que escolheu.</p>
+    <a class="btn" href="#/" style="margin-top:12px">Voltar aos canais</a>`;
+}
+
+/* ---------- Início ---------- */
+(async function(){
+  if (clientId()){ try{ await initAuth(); }catch(e){} }
+  route();
+})();
+</script>
+</body>
+</html>
